@@ -1,0 +1,47 @@
+﻿using ApiProjectPractise.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
+
+namespace ApiProjectPractise.Data.Configurations
+{
+    public class ProductConfiguration : IEntityTypeConfiguration<Product>
+    {
+        public void Configure(EntityTypeBuilder<Product> builder)
+        {
+            builder.HasKey(p => p.Id);
+            builder.Property(p => p.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+            builder.Property(p => p.Description)
+                .IsRequired()
+                .HasMaxLength(500);
+            builder.Property(p => p.Price)
+                .IsRequired()
+                .HasColumnType("decimal(18,2)");
+            builder.Property(p => p.CreatedAt)
+                .IsRequired()
+                .HasDefaultValueSql("GETDATE()");
+            builder.Property(p => p.UpdatedAt)
+                .IsRequired(false);
+
+            builder.HasOne(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Seed Data for Products (ProductId 1-dən 9-a kimi)
+            builder.HasData(
+                new Product { Id = 1, Name = "Product 1", Description = "Desc 1", Price = 100, CategoryId = 1, CreatedAt = new DateTime(2024, 1, 1) },
+                new Product { Id = 2, Name = "Product 2", Description = "Desc 2", Price = 200, CategoryId = 1, CreatedAt = new DateTime(2024, 1, 1) },
+                new Product { Id = 3, Name = "Product 3", Description = "Desc 3", Price = 300, CategoryId = 1, CreatedAt = new DateTime(2024, 1, 1) },
+                new Product { Id = 4, Name = "Product 4", Description = "Desc 4", Price = 400, CategoryId = 2, CreatedAt = new DateTime(2024, 1, 1) },
+                new Product { Id = 5, Name = "Product 5", Description = "Desc 5", Price = 500, CategoryId = 2, CreatedAt = new DateTime(2024, 1, 1) },
+                new Product { Id = 6, Name = "Product 6", Description = "Desc 6", Price = 600, CategoryId = 2, CreatedAt = new DateTime(2024, 1, 1) },
+                new Product { Id = 7, Name = "Product 7", Description = "Desc 7", Price = 700, CategoryId = 3, CreatedAt = new DateTime(2024, 1, 1) },
+                new Product { Id = 8, Name = "Product 8", Description = "Desc 8", Price = 800, CategoryId = 3, CreatedAt = new DateTime(2024, 1, 1) },
+                new Product { Id = 9, Name = "Product 9", Description = "Desc 9", Price = 900, CategoryId = 3, CreatedAt = new DateTime(2024, 1, 1) }
+            );
+        }
+    }
+}
