@@ -1,0 +1,26 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+
+namespace WebApplication2.Filters
+{
+    public class TokenAuthFilterAttribute : ActionFilterAttribute
+    {
+        public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        {
+            // Read token from cookie
+            var token = context.HttpContext.Request.Cookies["AuthToken"];
+            // If token is missing, redirect to login
+            if (string.IsNullOrEmpty(token))
+            {
+                context.Result = new RedirectToActionResult("Login", "UIAccount", null);
+                return;
+            }
+            // Add token to request headers if not already present
+            if (!context.HttpContext.Request.Headers.ContainsKey("Authorization"))
+            {
+                context.HttpContext.Request.Headers.Append("Authorization", $"Bearer {token}");
+            }
+            await next();
+        }
+    }
+}

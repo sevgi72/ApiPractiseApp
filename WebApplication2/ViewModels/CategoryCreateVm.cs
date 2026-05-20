@@ -1,0 +1,19 @@
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
+
+namespace WebApplication2.ViewModels
+{
+    public class CategoryCreateVm
+    {
+        [Required(ErrorMessage = "Name is required")]
+        [MaxLength(100)]
+        public string Name { get; set; } = null!;
+
+        [Required(ErrorMessage = "Description is required")]
+        [MinLength(5)]
+        public string Description { get; set; } = null!;
+
+        [Required(ErrorMessage = "Photo is required")]
+        public IFormFile Photo { get; set; } = null!;
+    }
+}

@@ -1,0 +1,53 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using WebApplication2.ViewModels;
+using WebApplication2.Filters;
+
+namespace WebApplication2.Controllers
+{
+    [TokenAuthFilter]
+    public class ProductController : Controller
+    {
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public ProductController(IHttpClientFactory httpClientFactory)
+        {
+            _httpClientFactory = httpClientFactory;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient("ApiClient");
+
+                var response = await httpClient.GetAsync("http://localhost:5202/api/Product");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+
+                    var products = JsonSerializer.Deserialize<List<ProductVm>>(
+                        responseContent,
+                        new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+
+                    return View(products ?? new List<ProductVm>());
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    TempData["ErrorMessage"] = $"Failed to retrieve products. Status: {response.StatusCode}, Details: {errorContent}";
+                    return View(new List<ProductVm>());
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
+                return View(new List<ProductVm>());
+            }
+        }
+    }
+}

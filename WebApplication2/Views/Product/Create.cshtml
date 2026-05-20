@@ -1,0 +1,62 @@
+@using WebApplication2.ViewModels
+@model WebApplication2.ViewModels.ProductCreateVm
+
+@{
+	ViewData["Title"] = "Create Product";
+}
+
+<h1>Create Product</h1>
+
+@if (TempData["ErrorMessage"] != null)
+{
+	<div class="alert alert-danger">
+		@TempData["ErrorMessage"]
+	</div>
+}
+
+<div class="row">
+	<div class="col-md-4">
+		<form asp-action="Create" method="post">
+			<div class="form-group mb-3">
+				<label asp-for="Name" class="control-label"></label>
+				<input asp-for="Name" class="form-control" />
+				<span asp-validation-for="Name" class="text-danger"></span>
+			</div>
+			<div class="form-group mb-3">
+				<label asp-for="Description" class="control-label"></label>
+				<input asp-for="Description" class="form-control" />
+				<span asp-validation-for="Description" class="text-danger"></span>
+			</div>
+			<div class="form-group mb-3">
+				<label asp-for="Price" class="control-label"></label>
+				<input asp-for="Price" type="number" step="0.01" class="form-control" />
+				<span asp-validation-for="Price" class="text-danger"></span>
+			</div>
+
+			<div class="form-group mb-3">
+				<label asp-for="CategoryId" class="control-label">Category</label>
+				<select asp-for="CategoryId" class="form-control" asp-items="@(new SelectList(ViewBag.Categories ?? new List<CategoryReturnDto>(), "Id", "Name"))">
+					<option value="">-- Select Category --</option>
+				</select>
+				<span asp-validation-for="CategoryId" class="text-danger"></span>
+			</div>
+
+			<div class="form-group mb-3">
+				<label asp-for="ColorsId" class="control-label">Colors</label>
+				<select asp-for="ColorsId" class="form-control" asp-items="@(new SelectList(ViewBag.Colors ?? new List<ColorVm>(), "Id", "Name"))" multiple="multiple">
+				</select>
+				<span asp-validation-for="ColorsId" class="text-danger"></span>
+				<small class="form-text text-muted">Hold down the Ctrl (windows) or Command (Mac) button to select multiple options.</small>
+			</div>
+
+			<div class="form-group">
+				<input type="submit" value="Create" class="btn btn-primary" />
+				<a asp-action="Index" class="btn btn-secondary">Back to List</a>
+			</div>
+		</form>
+	</div>
+</div>
+
+@section Scripts {
+	@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

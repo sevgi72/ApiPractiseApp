@@ -1,0 +1,26 @@
+﻿using ApiProjectPractise.Data;
+using ApiProjectPractise.Models;
+using Microsoft.AspNetCore.Mvc;
+using System.Linq;
+
+namespace ApiProjectPractise.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ColorController : ControllerBase
+    {
+        private readonly AppDbContext _context;
+
+        public ColorController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        [HttpGet]
+        public IActionResult Get()
+        {
+            var colors = _context.Colors.ToList();
+            return Ok(colors);
+        }
+    }
+}

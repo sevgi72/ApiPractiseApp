@@ -39,7 +39,7 @@ namespace WebApplication2.Controllers
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
                 var response = await client.PostAsync(
-                    "https://localhost:5202/api/Account/Register", content);
+                    "http://localhost:5202/api/Account/Register", content);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -85,7 +85,7 @@ namespace WebApplication2.Controllers
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
                 var response = await client.PostAsync(
-                    "https://localhost:5202/api/Account/Login", content);
+                    "http://localhost:5202/api/Account/Login", content);
 
                 if (response.IsSuccessStatusCode)
                 {

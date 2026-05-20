@@ -1,0 +1,32 @@
+using ApiProjectPractise.Data;
+using ApiProjectPractise.Models;
+using ApiProjectPractise.Dtos.ColorDtos;
+using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace ApiProjectPractise.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ColorController : ControllerBase
+    {
+        private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
+
+        public ColorController(AppDbContext context, IMapper mapper)
+        {
+            _context = context;
+            _mapper = mapper;
+        }
+
+        [HttpGet]
+        public IActionResult Get()
+        {
+            var colors = _context.Colors.ToList();
+            var colorDtos = _mapper.Map<List<ColorReturnDto>>(colors);
+            return Ok(colorDtos);
+        }
+    }
+}

@@ -1,0 +1,157 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using WebApplication2.Filters;
+using WebApplication2.ViewModels;
+
+namespace WebApplication2.Controllers
+{
+    [TokenAuthFilter]
+    public class CategoryController : Controller
+    {
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public CategoryController(IHttpClientFactory httpClientFactory)
+        {
+            _httpClientFactory = httpClientFactory;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient("ApiClient");
+
+                var response = await httpClient.GetAsync("http://localhost:5202/api/Category");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+
+                    var categories = JsonSerializer.Deserialize<List<CategoryReturnDto>>(
+                        responseContent,
+                        new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+
+                    return View(categories ?? new List<CategoryReturnDto>());
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    TempData["ErrorMessage"] = $"Failed to retrieve categories. Status: {response.StatusCode}, Details: {errorContent}";
+                    return View(new List<CategoryReturnDto>());
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
+                return View(new List<CategoryReturnDto>());
+            }
+        }
+       
+        public async Task<IActionResult> Detail(int id)
+        {
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient();
+
+                var response = await httpClient.GetAsync($"http://localhost:5202/api/Category/{id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+
+                    var category = JsonSerializer.Deserialize<CategoryReturnDto>(
+                        responseContent,
+                        new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+
+                    if (category == null)
+                    {
+                        TempData["ErrorMessage"] = "Category not found";
+                        return RedirectToAction("Index");
+                    }
+
+                    return View(category);
+                }
+                else if(response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    TempData["ErrorMessage"] = "You need to login to view category details.";
+                    return RedirectToAction("Login","UIAccount");
+                }
+                else if(response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    TempData["ErrorMessage"] = "Category not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Failed to retrieve category details.";
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+            [HttpGet]
+            public IActionResult Create()
+            {
+                return View();
+            }
+
+            [HttpPost]
+            public async Task<IActionResult> Create(CategoryCreateVm model)
+            {
+                if (!ModelState.IsValid)
+                {
+                    return View(model);
+                }
+
+                try
+                {
+                    var httpClient = _httpClientFactory.CreateClient("ApiClient");
+                    using var multipartContent = new MultipartFormDataContent();
+               
+                    multipartContent.Add(new StringContent(model.Name), "Name");
+
+                    if (!string.IsNullOrEmpty(model.Description))
+                    {
+                        multipartContent.Add(new StringContent(model.Description), "Description");
+                    }
+
+                    if (model.Photo != null && model.Photo.Length > 0)
+                    {
+                        var streamContent = new StreamContent(model.Photo.OpenReadStream());
+                        streamContent.Headers.ContentType = new MediaTypeHeaderValue(model.Photo.ContentType);
+                        multipartContent.Add(streamContent, "Photo", model.Photo.FileName);
+                    }
+
+                    var response = await httpClient.PostAsync("http://localhost:5202/api/Category", multipartContent);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        TempData["SuccessMessage"] = "Category created successfully.";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        var errorContent = await response.Content.ReadAsStringAsync();
+                        TempData["ErrorMessage"] = $"Failed to create category. Status: {(int)response.StatusCode}. Details: {errorContent}";
+                        return View(model);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
+                    return View(model);
+                }
+            }
+        }
+    }
